@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: securedocs-platform
+    env: python
+    buildCommand: pip install -r requirements.txt && flask seed-demo
+    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT run:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        value: bwzsSjaPnSQXlHd3xay1Ud5pEwI0ximivgc2CSJHvpA=
+      - key: FLASK_CONFIG
+        value: production

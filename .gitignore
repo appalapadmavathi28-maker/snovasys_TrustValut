@@ -49,7 +49,14 @@ uploads/*
 .coverage
 htmlcov/
 
-# IDE / Editor configs
+# Binaries and logs
+*.exe
+*.log
+tunnel.log
+cloudflared.exe
+ngrok.exe
+err.log
+out.log
 .vscode/
 .idea/
 *.swp
