@@ -75,20 +75,22 @@ A secure document sharing platform built with Flask that allows users to upload,
 
 
 ## PROJECT STRUCTURE
+
+
 securedocs/
 ├── app/
-│   ├── _init_.py          (app factory)
-│   ├── models.py            (User, Document, Share, AuditLog)
+│   ├── __init__.py          # App factory
+│   ├── models.py            # User, Document, Share, AuditLog
 │   ├── extensions.py
-│   ├── auth/                (blueprint: routes, forms)
-│   ├── documents/           (blueprint: upload, share, download, view)
-│   ├── admin/               (blueprint: dashboard, users, audit)
-│   ├── utils/               (encryption.py, audit.py, decorators.py)
-│   ├── templates/           (base.html + per-feature folders)
-│   └── static/              (css, js)
-├── uploads/                 (encrypted files, gitignored)
+│   ├── auth/                # Blueprint: routes, forms
+│   ├── documents/           # Blueprint: upload, share, download, view
+│   ├── admin/               # Blueprint: dashboard, users, audit
+│   ├── utils/               # encryption.py, audit.py, decorators.py
+│   ├── templates/           # base.html + per-feature folders
+│   └── static/              # CSS, JS
+├── uploads/                 # Encrypted files (gitignored)
 ├── migrations/
-├── tests/                   (pytest: auth, permissions, audit, admin revoke)
+├── tests/                   # Pytest test cases
 ├── config.py
 ├── run.py
 ├── requirements.txt
