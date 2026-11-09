@@ -110,3 +110,20 @@ securedocs/
 
 ## UI PAGES
 Login, Register, Dashboard, Upload, My Documents, Shared With Me, Document Detail (share form + per-document audit), Admin Dashboard, Admin Users, Admin Audit Trail, error pages. Use a consistent professional design (blue/dark theme), flash messages, and confirmation modals.
+
+
+## prompt 5
+
+## DELIVERABLES
+1. Complete working code for everything above, no placeholders or TODOs
+2. requirements.txt and .env.example
+3. Seed script / CLI for the admin user and optional demo data
+4. pytest tests covering: unauthorized access returns 403 and is logged, revoked user cannot log in, shared user permissions are enforced, audit logs are created for each action
+5. README.md with setup steps, screenshots section, feature list, security notes, and the project statement
+6. Run the app locally, verify every feature in the browser, and fix all bugs
+
+## WORKING INSTRUCTIONS
+- First write a short implementation plan, then execute it step by step
+- Use the browser to test the full flow: register two users, upload, share, download, trigger an unauthorized access attempt, check the audit trail, and revoke the user as admin
+- Keep code clean, commented, and modular
+- At the end, summarize what was built, how to run it, and the default admin credentials
