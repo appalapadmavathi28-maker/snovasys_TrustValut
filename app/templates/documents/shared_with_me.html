@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Shared With Me - SecureDocs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-1">Shared With Me</h2>
+    <p class="text-secondary small mb-0">Encrypted files shared directly with your account by other users</p>
+  </div>
+</div>
+
+<!-- Search Bar -->
+<div class="card border-0 mb-4">
+  <div class="card-body p-3">
+    <form method="GET" action="{{ url_for('documents.shared_with_me') }}" class="row g-2">
+      <div class="col-md-10">
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-secondary"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="Search by title, description or owner name..." value="{{ search_query }}">
+        </div>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary w-100">Search</button>
+        {% if search_query %}
+          <a href="{{ url_for('documents.shared_with_me') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Shared Documents Table -->
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    {% if shares %}
+      <div class="table-responsive">
+        <table class="table table-custom table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Document Details</th>
+              <th>Owner</th>
+              <th>Permission Level</th>
+              <th>Expiry</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for share in shares %}
+            {% set doc = share.document %}
+            <tr>
+              <td>
+                <div class="fw-bold text-dark fs-6">{{ doc.title }}</div>
+                <div class="text-muted small">{{ doc.original_filename }} ({{ doc.formatted_size }})</div>
+              </td>
+              <td>
+                <div class="fw-semibold text-dark">{{ doc.owner.name }}</div>
+                <div class="text-muted small">{{ doc.owner.email }}</div>
+              </td>
+              <td>
+                {% if share.permission == 'edit' %}
+                  <span class="badge bg-purple-subtle text-purple border border-purple-subtle px-2 py-1" style="background-color: #f3e8ff; color: #7e22ce;">
+                    <i class="bi bi-pencil-fill me-1"></i>Full Access (Edit)
+                  </span>
+                {% elif share.permission == 'download' %}
+                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                    <i class="bi bi-download me-1"></i>View & Download
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                    <i class="bi bi-eye-fill me-1"></i>View Only
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                {% if share.expires_at %}
+                  <span class="text-secondary small">
+                    <i class="bi bi-clock me-1"></i>{{ share.expires_at.strftime('%Y-%m-%d %H:%M') }}
+                  </span>
+                {% else %}
+                  <span class="text-muted small">Never expires</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <div class="btn-group" role="group">
+                  <a href="{{ url_for('documents.document_detail', doc_id=doc.id) }}" class="btn btn-sm btn-outline-secondary" title="View Details">
+                    <i class="bi bi-info-circle"></i> Info
+                  </a>
+                  {% if doc.is_previewable %}
+                  <a href="{{ url_for('documents.view_document', doc_id=doc.id) }}" target="_blank" class="btn btn-sm btn-outline-primary" title="Preview Inline">
+                    <i class="bi bi-eye"></i> View
+                  </a>
+                  {% endif %}
+                  {% if share.has_permission('download') %}
+                  <a href="{{ url_for('documents.download_document', doc_id=doc.id) }}" class="btn btn-sm btn-primary" title="Download Decrypted">
+                    <i class="bi bi-download"></i> Download
+                  </a>
+                  {% else %}
+                  <button class="btn btn-sm btn-outline-secondary disabled" title="Download permission not granted">
+                    <i class="bi bi-lock-fill"></i> View Only
+                  </button>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-share display-4 text-muted"></i>
+        <h5 class="mt-3 text-secondary">No shared documents</h5>
+        <p class="text-muted small">{% if search_query %}No shared documents matched '{{ search_query }}'.{% else %}No files have been shared with you yet.{% endif %}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

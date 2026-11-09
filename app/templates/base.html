@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SecureDocs - Secure Document Sharing Platform{% endblock %}</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- Top Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm px-3" style="background-color: #0f172a !important;">
+    <div class="container-fluid">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('documents.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">
+        <i class="bi bi-shield-lock-fill shield-icon fs-4 text-primary"></i>
+        <span>Secure<span class="text-primary">Docs</span></span>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNavContent">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="topNavContent">
+        <ul class="navbar-nav ms-auto align-items-center gap-3">
+          {% if current_user.is_authenticated %}
+            <li class="nav-item d-flex align-items-center text-light gap-2">
+              <span class="badge {% if current_user.is_admin() %}badge-role-admin{% else %}badge-role-user{% endif %} px-2 py-1 text-uppercase">
+                <i class="bi {% if current_user.is_admin() %}bi-shield-shaded{% else %}bi-person-fill{% endif %} me-1"></i>{{ current_user.role }}
+              </span>
+              <span class="text-light fw-medium">{{ current_user.name }}</span>
+              <span class="text-secondary small">({{ current_user.email }})</span>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-box-arrow-right"></i> Sign Out
+              </a>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-sm">Sign In</a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Create Account</a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container-fluid flex-grow-1 p-0">
+    <div class="row g-0 min-vh-100">
+      
+      {% if current_user.is_authenticated %}
+      <!-- Left Sidebar -->
+      <aside class="col-md-3 col-lg-2 sidebar p-3 d-flex flex-column justify-content-between">
+        <div>
+          <div class="sidebar-heading">Navigation</div>
+          <ul class="nav flex-column mb-3">
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'documents.dashboard' %}active{% endif %}" href="{{ url_for('documents.dashboard') }}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'documents.my_documents' %}active{% endif %}" href="{{ url_for('documents.my_documents') }}">
+                <i class="bi bi-folder2-open"></i> My Documents
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'documents.shared_with_me' %}active{% endif %}" href="{{ url_for('documents.shared_with_me') }}">
+                <i class="bi bi-people-fill"></i> Shared With Me
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'documents.upload' %}active{% endif %}" href="{{ url_for('documents.upload') }}">
+                <i class="bi bi-cloud-arrow-up-fill"></i> Upload Document
+              </a>
+            </li>
+          </ul>
+
+          {% if current_user.is_admin() %}
+          <div class="sidebar-heading text-danger-emphasis">Administration</div>
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">
+                <i class="bi bi-pie-chart-fill"></i> Admin Overview
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}" href="{{ url_for('admin.users') }}">
+                <i class="bi bi-person-lines-fill"></i> User Directory
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'admin.documents' %}active{% endif %}" href="{{ url_for('admin.documents') }}">
+                <i class="bi bi-file-earmark-lock-fill"></i> System Documents
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if request.endpoint == 'admin.audit_trail' %}active{% endif %}" href="{{ url_for('admin.audit_trail') }}">
+                <i class="bi bi-journal-text"></i> Full Audit Trail
+              </a>
+            </li>
+          </ul>
+          {% endif %}
+        </div>
+
+        <div class="border-top border-secondary pt-3 text-secondary small">
+          <div><i class="bi bi-key-fill text-warning me-1"></i>Fernet AES-128-CBC</div>
+          <div><i class="bi bi-shield-check text-success me-1"></i>Append-only Audit Log</div>
+        </div>
+      </aside>
+      {% endif %}
+
+      <!-- Content Area -->
+      <main class="{% if current_user.is_authenticated %}col-md-9 col-lg-10 p-4{% else %}col-12 p-4{% endif %} bg-light">
+        
+        <!-- Flash Messages -->
+        <div class="container-fluid mb-3 p-0">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show shadow-sm d-flex align-items-center" role="alert">
+                  <i class="bi {% if category == 'success' %}bi-check-circle-fill{% elif category == 'danger' %}bi-exclamation-octagon-fill{% elif category == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %} me-2 fs-5"></i>
+                  <div class="flex-grow-1">{{ message }}</div>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <!-- Reusable Confirmation Modal -->
+  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-body-message mb-0 text-secondary">Are you sure you want to proceed with this action?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <form id="confirmationForm" method="POST" action="">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" id="confirmationSubmitBtn" class="btn btn-danger">Confirm</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <!-- Custom JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

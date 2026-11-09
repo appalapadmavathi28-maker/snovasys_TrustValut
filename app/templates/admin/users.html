@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - SecureDocs Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-1">User Directory & Governance</h2>
+    <p class="text-secondary small mb-0">Manage roles, revoke unauthorized accounts, and review user activity</p>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="card border-0 mb-4 shadow-sm">
+  <div class="card-body p-3">
+    <form method="GET" action="{{ url_for('admin.users') }}" class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-secondary"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="Search by user name or email..." value="{{ search }}">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select name="role" class="form-select">
+          <option value="">All Roles</option>
+          <option value="user" {% if role_filter == 'user' %}selected{% endif %}>User</option>
+          <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="status" class="form-select">
+          <option value="">All Statuses</option>
+          <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+          <option value="revoked" {% if status_filter == 'revoked' %}selected{% endif %}>Revoked</option>
+        </select>
+      </div>
+      <div class="col-md-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary w-100">Filter</button>
+        {% if search or role_filter or status_filter %}
+          <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Users Table -->
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-custom table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Account Status</th>
+            <th>Last Login</th>
+            <th>Documents</th>
+            <th>Registered</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <div class="fw-bold text-dark">{{ u.name }}</div>
+              <div class="text-muted small">{{ u.email }}</div>
+            </td>
+            <td>
+              <span class="badge {% if u.role == 'admin' %}badge-role-admin{% else %}badge-role-user{% endif %} px-2 py-1">
+                {{ u.role|upper }}
+              </span>
+            </td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                  <i class="bi bi-check-circle-fill me-1"></i>Active
+                </span>
+              {% else %}
+                <span class="badge bg-danger text-white px-2 py-1">
+                  <i class="bi bi-slash-circle me-1"></i>Revoked
+                </span>
+              {% endif %}
+              {% if u.is_locked() %}
+                <span class="badge bg-warning text-dark px-2 py-1 ms-1">
+                  <i class="bi bi-lock-fill me-1"></i>Locked
+                </span>
+              {% endif %}
+            </td>
+            <td class="small text-secondary">
+              {% if u.last_login %}
+                {{ u.last_login.strftime('%Y-%m-%d %H:%M') }}
+              {% else %}
+                <span class="text-muted">Never</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border">{{ u.documents.count() }} docs</span>
+            </td>
+            <td class="small text-secondary">
+              {{ u.created_at.strftime('%Y-%m-%d') }}
+            </td>
+            <td class="text-end">
+              <div class="btn-group" role="group">
+                <a href="{{ url_for('admin.audit_trail', user_id=u.id) }}" class="btn btn-sm btn-outline-secondary" title="View Audit Trail">
+                  <i class="bi bi-journal-text"></i> Audit
+                </a>
+
+                {% if u.id != current_user.id %}
+                  {% if u.is_active %}
+                    <button type="button" class="btn btn-sm btn-outline-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirmationModal"
+                            data-action-url="{{ url_for('admin.revoke_user', user_id=u.id) }}"
+                            data-action-title="Revoke User Access"
+                            data-action-message="Revoke access for {{ u.name }} ({{ u.email }})? The user will immediately be logged out and cannot sign back in until restored. All active shares granted to this user will also be revoked."
+                            data-btn-class="btn-warning"
+                            data-btn-text="Revoke Access"
+                            title="Revoke Access">
+                      <i class="bi bi-slash-circle"></i> Revoke
+                    </button>
+                  {% else %}
+                    <form method="POST" action="{{ url_for('admin.restore_user', user_id=u.id) }}" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm btn-outline-success" title="Restore Access">
+                        <i class="bi bi-arrow-counterclockwise"></i> Restore
+                      </button>
+                    </form>
+                  {% endif %}
+
+                  <button type="button" class="btn btn-sm btn-outline-danger"
+                          data-bs-toggle="modal"
+                          data-bs-target="#confirmationModal"
+                          data-action-url="{{ url_for('admin.delete_user', user_id=u.id) }}"
+                          data-action-title="Delete User Permanently"
+                          data-action-message="Permanently delete user {{ u.name }} ({{ u.email }}) and all associated files from server storage?"
+                          data-btn-class="btn-danger"
+                          data-btn-text="Delete Permanently"
+                          title="Delete User">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                {% else %}
+                  <span class="badge bg-light text-muted border px-2 py-1 align-self-center">Current Admin</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

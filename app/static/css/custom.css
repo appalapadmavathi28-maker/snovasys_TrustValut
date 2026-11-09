@@ -1,0 +1,130 @@
+:root {
+  --sd-navy-900: #0f172a;
+  --sd-navy-800: #1e293b;
+  --sd-navy-700: #334155;
+  --sd-blue-600: #2563eb;
+  --sd-blue-500: #3b82f6;
+  --sd-blue-100: #dbeafe;
+  --sd-danger: #ef4444;
+  --sd-warning: #f59e0b;
+  --sd-success: #10b981;
+  --sd-border: #e2e8f0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+/* Sidebar styling */
+.sidebar {
+  min-height: calc(100vh - 56px);
+  background: #0f172a;
+  color: #94a3b8;
+}
+
+.sidebar .nav-link {
+  color: #94a3b8;
+  font-size: 0.95rem;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.sidebar .nav-link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar .nav-link.active {
+  color: #ffffff;
+  background: #2563eb;
+  font-weight: 500;
+  box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3);
+}
+
+.sidebar-heading {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 700;
+  padding: 1rem 1rem 0.5rem;
+}
+
+/* Cards & Panels */
+.card {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
+}
+
+.card-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+}
+
+/* Tables */
+.table-custom th {
+  background-color: #f1f5f9;
+  color: #475569;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  border-top: none;
+}
+
+.table-custom td {
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+
+/* Audit row highlight */
+.audit-row-denied {
+  background-color: rgba(239, 68, 68, 0.08) !important;
+}
+
+.audit-row-denied td {
+  border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Badges */
+.badge-role-admin {
+  background-color: #7c3aed;
+  color: #ffffff;
+}
+
+.badge-role-user {
+  background-color: #0284c7;
+  color: #ffffff;
+}
+
+/* Modals */
+.modal-content {
+  border-radius: 0.75rem;
+  border: none;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Navbar */
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.shield-icon {
+  color: #3b82f6;
+}

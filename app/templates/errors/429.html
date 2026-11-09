@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}429 Rate Limit Exceeded - SecureDocs{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center py-5">
+  <div class="col-md-7 col-lg-5 text-center">
+    <div class="display-1 text-warning fw-bold mb-3">
+      <i class="bi bi-hourglass-bottom"></i> 429
+    </div>
+    <h3 class="fw-bold text-dark">Too Many Requests</h3>
+    <p class="text-secondary mb-4">
+      You have exceeded the request rate limit. To prevent abuse and protect authentication security, your requests have been temporarily throttled. Please wait a moment and try again.
+    </p>
+    <a href="{{ url_for('documents.dashboard') }}" class="btn btn-primary">
+      <i class="bi bi-arrow-clockwise me-1"></i> Try Again
+    </a>
+  </div>
+</div>
+{% endblock %}

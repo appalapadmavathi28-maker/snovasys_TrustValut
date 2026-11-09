@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - SecureDocs{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="fw-bold mb-1">Administrative Center</h2>
+    <p class="text-secondary small mb-0">Platform security telemetry, account governance, and threat detection</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('admin.audit_trail') }}" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 shadow-sm">
+      <i class="bi bi-shield-shaded"></i> Full Audit Trail
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
+      <i class="bi bi-people"></i> Manage Users
+    </a>
+  </div>
+</div>
+
+<!-- High-Level Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 h-100 bg-white">
+      <div class="card-body d-flex align-items-center p-3">
+        <div class="p-3 bg-primary bg-opacity-10 rounded-3 text-primary me-3">
+          <i class="bi bi-people-fill fs-3"></i>
+        </div>
+        <div>
+          <h6 class="text-secondary small text-uppercase fw-bold mb-1">Registered Users</h6>
+          <h3 class="fw-bold mb-0 text-dark">{{ total_users }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 h-100 bg-white">
+      <div class="card-body d-flex align-items-center p-3">
+        <div class="p-3 bg-success bg-opacity-10 rounded-3 text-success me-3">
+          <i class="bi bi-file-earmark-lock2-fill fs-3"></i>
+        </div>
+        <div>
+          <h6 class="text-secondary small text-uppercase fw-bold mb-1">Encrypted Docs</h6>
+          <h3 class="fw-bold mb-0 text-dark">{{ total_documents }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 h-100 bg-white">
+      <div class="card-body d-flex align-items-center p-3">
+        <div class="p-3 bg-info bg-opacity-10 rounded-3 text-info me-3">
+          <i class="bi bi-share-fill fs-3"></i>
+        </div>
+        <div>
+          <h6 class="text-secondary small text-uppercase fw-bold mb-1">Active Shares</h6>
+          <h3 class="fw-bold mb-0 text-dark">{{ total_shares }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-xl-3">
+    <div class="card border-0 h-100 bg-white">
+      <div class="card-body d-flex align-items-center p-3">
+        <div class="p-3 bg-danger bg-opacity-10 rounded-3 text-danger me-3">
+          <i class="bi bi-shield-slash-fill fs-3"></i>
+        </div>
+        <div>
+          <h6 class="text-secondary small text-uppercase fw-bold mb-1">Denied / Breaches</h6>
+          <h3 class="fw-bold mb-0 {% if unauthorized_count > 0 %}text-danger{% else %}text-dark{% endif %}">
+            {{ unauthorized_count }}
+          </h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart & Threat Matrix -->
+<div class="row g-4 mb-4">
+  <!-- Activity Timeline Chart -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-dark"><i class="bi bi-graph-up me-2 text-primary"></i>Security & Access Events (Past 7 Days)</span>
+        <span class="badge bg-light text-secondary border">Real-time Telemetry</span>
+      </div>
+      <div class="card-body p-4">
+        <canvas id="activityTrendChart" height="150"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Security Overview -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <span class="fw-bold text-dark"><i class="bi bi-shield-lock me-2 text-primary"></i>Security Controls Status</span>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush small">
+          <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+            <span><i class="bi bi-key-fill text-warning me-2"></i>At-Rest Encryption</span>
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Fernet AES-128</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+            <span><i class="bi bi-shield-shaded text-danger me-2"></i>Brute-force Lockout</span>
+            <span class="badge bg-success-subtle text-success border border-success-subtle">5 Attempts / 15 Min</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+            <span><i class="bi bi-stopwatch text-info me-2"></i>Rate Limiting</span>
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Flask-Limiter Active</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+            <span><i class="bi bi-file-earmark-check text-primary me-2"></i>Session Security</span>
+            <span class="badge bg-success-subtle text-success border border-success-subtle">HttpOnly + SameSite</span>
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+            <span><i class="bi bi-eye-slash text-secondary me-2"></i>Audit Retention</span>
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Immutable / Append-only</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Unauthorized Attempts Table -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+    <div>
+      <span class="fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Recent Denied & Unauthorized Access Events</span>
+      <span class="text-muted small ms-2">(Real-time unauthorized attempts requiring review)</span>
+    </div>
+    <a href="{{ url_for('admin.audit_trail', status='denied') }}" class="btn btn-outline-danger btn-sm">Filter Denied in Audit</a>
+  </div>
+  <div class="card-body p-0">
+    {% if recent_unauthorized %}
+      <div class="table-responsive">
+        <table class="table table-custom table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Timestamp (UTC)</th>
+              <th>User Account</th>
+              <th>Event Action</th>
+              <th>Status</th>
+              <th>Client IP</th>
+              <th>Incident Details</th>
+              <th class="text-end">Administrative Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in recent_unauthorized %}
+            <tr class="audit-row-denied">
+              <td class="small text-secondary">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              <td>
+                {% if log.user %}
+                  <div class="fw-semibold text-dark small">{{ log.user.name }}</div>
+                  <div class="text-muted small">{{ log.user.email }}</div>
+                  {% if not log.user.is_active %}
+                    <span class="badge bg-danger small">Currently Revoked</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted small">Unauthenticated Attempt</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-danger text-white">{{ log.action }}</span>
+              </td>
+              <td>
+                <span class="badge bg-danger"><i class="bi bi-shield-x me-1"></i>Denied</span>
+              </td>
+              <td class="small font-monospace">{{ log.ip_address }}</td>
+              <td class="small text-secondary" style="max-width: 300px;">{{ log.details }}</td>
+              <td class="text-end">
+                {% if log.user and log.user.id != current_user.id and log.user.is_active %}
+                  <button type="button" class="btn btn-sm btn-danger"
+                          data-bs-toggle="modal" 
+                          data-bs-target="#confirmationModal"
+                          data-action-url="{{ url_for('admin.revoke_user', user_id=log.user.id) }}"
+                          data-action-title="Revoke User Access Immediately"
+                          data-action-message="Are you sure you want to revoke access for {{ log.user.name }} ({{ log.user.email }})? Their sessions will be invalidated and active shares will be revoked immediately."
+                          data-btn-class="btn-danger"
+                          data-btn-text="Revoke Access Now">
+                    <i class="bi bi-slash-circle me-1"></i> Revoke User
+                  </button>
+                {% elif log.user and not log.user.is_active %}
+                  <span class="badge bg-secondary">Revoked</span>
+                {% else %}
+                  <span class="text-muted small">-</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5 text-success">
+        <i class="bi bi-shield-check display-4"></i>
+        <h6 class="mt-2 text-dark">No Unauthorized Incidents Detected</h6>
+        <p class="text-muted small mb-0">All document and administrative access attempts conform to security policy.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const ctx = document.getElementById('activityTrendChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: {{ chart_labels | tojson }},
+        datasets: [
+          {
+            label: 'Authorized Events (Success)',
+            data: {{ chart_success | tojson }},
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          },
+          {
+            label: 'Denied / Breaches',
+            data: {{ chart_denied | tojson }},
+            borderColor: '#ef4444',
+            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 2
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top',
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

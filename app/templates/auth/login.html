@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - SecureDocs{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center py-5">
+  <div class="col-md-6 col-lg-5 col-xl-4">
+    
+    <div class="text-center mb-4">
+      <div class="display-5 text-primary mb-2">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+      <h2 class="fw-bold text-dark">SecureDocs Sign In</h2>
+      <p class="text-muted small">Access your encrypted documents and access control workspace</p>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('auth.login', next=request.args.get('next')) }}" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label for="email" class="form-label fw-semibold">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-envelope text-secondary"></i></span>
+              {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="name@company.com", id="email", autofocus=True) }}
+            </div>
+            {% for error in form.email.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label fw-semibold">Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-key text-secondary"></i></span>
+              {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter your password", id="password") }}
+            </div>
+            {% for error in form.password.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="form-check">
+              {{ form.remember_me(class="form-check-input", id="remember_me") }}
+              <label class="form-check-label text-muted small" for="remember_me">Remember me</label>
+            </div>
+            <span class="text-muted small"><i class="bi bi-shield-check text-success"></i> 5 Attempts Lockout</span>
+          </div>
+
+          <div class="d-grid mb-3">
+            {{ form.submit(class="btn btn-primary btn-lg fw-semibold") }}
+          </div>
+        </form>
+      </div>
+      <div class="card-footer bg-light text-center py-3 border-0">
+        <span class="text-muted small">Don't have an account? </span>
+        <a href="{{ url_for('auth.register') }}" class="text-primary fw-semibold small text-decoration-none">Create an account</a>
+      </div>
+    </div>
+
+    <!-- Security Info Banner -->
+    <div class="mt-4 p-3 bg-white rounded border border-light-subtle text-center small text-secondary shadow-sm">
+      <div class="d-flex justify-content-center gap-3">
+        <span><i class="bi bi-lock-fill text-primary"></i> Fernet Encrypted</span>
+        <span>•</span>
+        <span><i class="bi bi-journal-check text-success"></i> Audited Access</span>
+        <span>•</span>
+        <span><i class="bi bi-shield-shaded text-info"></i> RBAC</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

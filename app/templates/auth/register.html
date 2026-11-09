@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account - SecureDocs{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center align-items-center py-5">
+  <div class="col-md-7 col-lg-5 col-xl-4">
+    
+    <div class="text-center mb-4">
+      <div class="display-5 text-primary mb-2">
+        <i class="bi bi-shield-plus"></i>
+      </div>
+      <h2 class="fw-bold text-dark">Create Account</h2>
+      <p class="text-muted small">Register to store, share, and collaborate on encrypted documents</p>
+    </div>
+
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <form method="POST" action="{{ url_for('auth.register') }}" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label for="name" class="form-label fw-semibold">Full Name</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-person text-secondary"></i></span>
+              {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="e.g. Alice Vance", id="name", autofocus=True) }}
+            </div>
+            {% for error in form.name.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label fw-semibold">Email Address</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-envelope text-secondary"></i></span>
+              {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="name@company.com", id="email") }}
+            </div>
+            {% for error in form.email.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label fw-semibold">Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-key text-secondary"></i></span>
+              {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Create a strong password", id="password") }}
+            </div>
+            
+            <!-- Real-time strength meter -->
+            <div class="progress mt-2" style="height: 6px;">
+              <div id="passwordStrengthBar" class="progress-bar bg-secondary" role="progressbar" style="width: 0%"></div>
+            </div>
+            <div id="passwordStrengthText" class="text-muted small mt-1">Minimum 8 characters with upper, lower, digits & symbols</div>
+
+            {% for error in form.password.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-4">
+            <label for="password_confirm" class="form-label fw-semibold">Confirm Password</label>
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="bi bi-shield-check text-secondary"></i></span>
+              {{ form.password_confirm(class="form-control" + (" is-invalid" if form.password_confirm.errors else ""), placeholder="Repeat your password", id="password_confirm") }}
+            </div>
+            {% for error in form.password_confirm.errors %}
+              <div class="text-danger small mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="d-grid mb-3">
+            {{ form.submit(class="btn btn-primary btn-lg fw-semibold") }}
+          </div>
+        </form>
+      </div>
+      <div class="card-footer bg-light text-center py-3 border-0">
+        <span class="text-muted small">Already have an account? </span>
+        <a href="{{ url_for('auth.login') }}" class="text-primary fw-semibold small text-decoration-none">Sign in here</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.title }} - SecureDocs{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+  <div class="d-flex align-items-center gap-2">
+    <a href="{{ url_for('documents.my_documents') if is_owner else url_for('documents.shared_with_me') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+      <h3 class="fw-bold mb-0 text-dark">{{ document.title }}</h3>
+      <span class="badge bg-secondary-subtle text-secondary font-monospace small">UUID: {{ document.id }}</span>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    {% if document.is_previewable %}
+    <a href="{{ url_for('documents.view_document', doc_id=document.id) }}" target="_blank" class="btn btn-outline-primary shadow-sm">
+      <i class="bi bi-eye"></i> View Inline
+    </a>
+    {% endif %}
+
+    {% if can_manage or (user_share and user_share.has_permission('download')) %}
+    <a href="{{ url_for('documents.download_document', doc_id=document.id) }}" class="btn btn-primary shadow-sm">
+      <i class="bi bi-download"></i> Download Decrypted
+    </a>
+    {% endif %}
+
+    {% if can_manage %}
+    <button type="button" class="btn btn-outline-danger shadow-sm"
+            data-bs-toggle="modal" 
+            data-bs-target="#confirmationModal"
+            data-action-url="{{ url_for('documents.delete_document', doc_id=document.id) }}"
+            data-action-title="Delete Encrypted Document"
+            data-action-message="Permanently delete '{{ document.title }}' and purge its encrypted content from server storage?"
+            data-btn-class="btn-danger"
+            data-btn-text="Delete Permanently">
+      <i class="bi bi-trash"></i> Delete
+    </button>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Metadata & Description Row -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <span class="fw-bold text-dark"><i class="bi bi-info-circle me-2 text-primary"></i>Document Overview</span>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label class="text-secondary small fw-bold text-uppercase">Description</label>
+          <p class="text-dark mb-0">{{ document.description or 'No description provided.' }}</p>
+        </div>
+
+        <div class="row g-3 pt-3 border-top">
+          <div class="col-sm-6 col-md-4">
+            <span class="text-muted small d-block">Original Filename</span>
+            <span class="fw-semibold text-dark text-break">{{ document.original_filename }}</span>
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <span class="text-muted small d-block">File Size</span>
+            <span class="badge bg-light text-dark border">{{ document.formatted_size }}</span>
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <span class="text-muted small d-block">MIME Type</span>
+            <span class="small font-monospace text-secondary">{{ document.mime_type }}</span>
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <span class="text-muted small d-block">Owner</span>
+            <span class="fw-semibold text-dark">{{ document.owner.name }}</span>
+            <div class="text-muted small">{{ document.owner.email }}</div>
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <span class="text-muted small d-block">Created At</span>
+            <span class="text-secondary small">{{ document.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</span>
+          </div>
+          <div class="col-sm-6 col-md-4">
+            <span class="text-muted small d-block">Encrypted Filename</span>
+            <span class="badge bg-dark font-monospace text-white">{{ document.stored_filename }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Replace Document Form (if owner or edit permissions) -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <span class="fw-bold text-dark"><i class="bi bi-arrow-repeat me-2 text-warning"></i>Replace Document</span>
+      </div>
+      <div class="card-body">
+        {% if can_manage or (user_share and user_share.permission == 'edit') %}
+          <p class="text-muted small">Upload an updated file version. The new file will be encrypted and replace the current on-disk ciphertext.</p>
+          <form method="POST" action="{{ url_for('documents.replace_document', doc_id=document.id) }}" enctype="multipart/form-data">
+            {{ replace_form.hidden_tag() }}
+            <div class="mb-3">
+              {{ replace_form.document_file(class="form-control form-control-sm") }}
+            </div>
+            {{ replace_form.submit(class="btn btn-warning btn-sm w-100 fw-semibold") }}
+          </form>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-lock-fill display-6"></i>
+            <p class="small mt-2 mb-0">You have read/download access only. Document replacement is restricted.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if can_manage %}
+<!-- Share Management Section (Owners and Admins) -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3">
+        <span class="fw-bold text-dark"><i class="bi bi-person-plus me-2 text-primary"></i>Grant Access</span>
+      </div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('documents.share_document', doc_id=document.id) }}">
+          {{ share_form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Recipient Email or Username</label>
+            {{ share_form.recipient(class="form-control form-control-sm", placeholder="user@company.com or name") }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Permission Level</label>
+            {{ share_form.permission(class="form-select form-select-sm") }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Expiry Date & Time (Optional)</label>
+            {{ share_form.expires_at(class="form-control form-control-sm") }}
+            <div class="form-text small">Leave blank for permanent access until revoked.</div>
+          </div>
+
+          {{ share_form.submit(class="btn btn-primary btn-sm w-100 fw-semibold") }}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-dark"><i class="bi bi-people me-2 text-success"></i>Current Access Permissions</span>
+        <span class="badge bg-primary-subtle text-primary">{{ shares|length }} total grant(s)</span>
+      </div>
+      <div class="card-body p-0">
+        {% if shares %}
+          <div class="table-responsive">
+            <table class="table table-custom table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Permission</th>
+                  <th>Expiry</th>
+                  <th>Status</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in shares %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold text-dark">{{ s.recipient.name }}</div>
+                    <div class="text-muted small">{{ s.recipient.email }}</div>
+                  </td>
+                  <td>
+                    {% if s.permission == 'edit' %}
+                      <span class="badge bg-purple-subtle text-purple border" style="background-color: #f3e8ff; color: #7e22ce;">Edit / Replace</span>
+                    {% elif s.permission == 'download' %}
+                      <span class="badge bg-primary-subtle text-primary border">View & Download</span>
+                    {% else %}
+                      <span class="badge bg-secondary-subtle text-secondary border">View Only</span>
+                    {% endif %}
+                  </td>
+                  <td class="small text-secondary">
+                    {% if s.expires_at %}
+                      {{ s.expires_at.strftime('%Y-%m-%d %H:%M') }}
+                      {% if s.is_expired() %}<span class="badge bg-danger small ms-1">Expired</span>{% endif %}
+                    {% else %}
+                      <span class="text-muted">Indefinite</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if s.is_revoked %}
+                      <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Revoked</span>
+                    {% elif s.is_expired() %}
+                      <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Expired</span>
+                    {% else %}
+                      <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if not s.is_revoked %}
+                    <form method="POST" action="{{ url_for('documents.revoke_share', share_id=s.id) }}" class="d-inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Revoke this user's access">
+                        <i class="bi bi-x-circle"></i> Revoke
+                      </button>
+                    </form>
+                    {% else %}
+                    <span class="text-muted small">Revoked</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="bi bi-people display-5"></i>
+            <p class="mt-2 mb-0">This document has not been shared with anyone yet.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Per-Document Audit Trail (Append-Only) -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+    <div>
+      <span class="fw-bold text-dark"><i class="bi bi-shield-check me-2 text-danger"></i>Per-Document Access Audit Log</span>
+      <span class="text-muted small ms-2">(Append-only security log for this document)</span>
+    </div>
+    <span class="badge bg-secondary-subtle text-secondary">{{ audit_logs|length }} event(s)</span>
+  </div>
+  <div class="card-body p-0">
+    {% if audit_logs %}
+      <div class="table-responsive">
+        <table class="table table-custom table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Timestamp (UTC)</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Status</th>
+              <th>IP Address</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in audit_logs %}
+            <tr class="{% if log.status == 'denied' or log.action == 'UNAUTHORIZED_ACCESS' %}audit-row-denied{% endif %}">
+              <td class="small text-secondary">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              <td>
+                {% if log.user %}
+                  <div class="fw-semibold text-dark small">{{ log.user.name }}</div>
+                  <div class="text-muted small">{{ log.user.email }}</div>
+                {% else %}
+                  <span class="text-muted small">Anonymous</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge {% if log.action in ['DOWNLOAD', 'VIEW'] %}bg-primary-subtle text-primary{% elif log.action in ['SHARE_CREATE', 'SHARE_UPDATE'] %}bg-info-subtle text-info-emphasis{% elif log.action in ['SHARE_REVOKE', 'DELETE_DOCUMENT'] %}bg-warning-subtle text-warning-emphasis{% elif log.action == 'UNAUTHORIZED_ACCESS' %}bg-danger text-white{% else %}bg-secondary-subtle text-secondary{% endif %}">
+                  {{ log.action }}
+                </span>
+              </td>
+              <td>
+                {% if log.status == 'success' %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-lg me-1"></i>Success</span>
+                {% else %}
+                  <span class="badge bg-danger text-white"><i class="bi bi-exclamation-triangle-fill me-1"></i>Denied</span>
+                {% endif %}
+              </td>
+              <td class="small font-monospace text-secondary">{{ log.ip_address or 'Unknown' }}</td>
+              <td class="small text-secondary">{{ log.details or '-' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-4 text-muted">
+        <p class="mb-0">No audit events recorded yet for this document.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
