@@ -40,7 +40,7 @@ python run.py
 
 Open the application at:
 
-[https://stocks-brisbane-bikini-happy.trycloudflare.com/auth/login?next=%2F](https://stocks-brisbane-bikini-happy.trycloudflare.com/auth/login?next=%2F)
+[https://snovasys-trustvalut-1.onrender.com](https://snovasys-trustvalut-1.onrender.com)
 
 **Demo Accounts:**
 
