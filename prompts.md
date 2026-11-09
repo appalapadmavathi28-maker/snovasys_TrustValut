@@ -17,3 +17,57 @@ A secure document sharing platform built with Flask that allows users to upload,
 ## USER ROLES
 1. Admin – manages all users, views all documents, views the full audit trail, revokes/restores access
 2. User – uploads documents, shares them, downloads what's shared with them
+
+
+**prompt 2**
+
+## CORE FEATURES
+
+### 1. Authentication
+- Register, login, logout
+- Password hashing, password strength validation
+- Session security (HttpOnly, SameSite cookies), CSRF protection on all forms
+- Login rate limiting (Flask-Limiter) and account lockout after 5 failed attempts
+- Seed a default admin account via a CLI command (flask create-admin)
+- Blocked/revoked users cannot log in and see a clear "access revoked" message
+
+### 2. Document Upload & Storage
+- Upload documents (pdf, docx, xlsx, pptx, txt, png, jpg) with size limit (e.g., 16 MB)
+- Validate extensions and MIME type, sanitize filenames (secure_filename), store with random UUID names
+- Encrypt every file at rest with Fernet; decrypt only on authorized download/view
+- Store metadata: title, description, original filename, size, type, owner, upload date
+
+### 3. Sharing & Access Permissions
+- Owner can share a document with specific users by email/username
+- Permission levels: View-only, Download, Edit/Replace (owner can pick)
+- Optional expiry date for each share
+- Owner can revoke an individual share at any time
+- Strict authorization check on every route (owner, shared user, or admin only). Return 403 otherwise
+- "My Documents" and "Shared With Me" pages
+
+### 4. Audit Trail (key feature)
+- Log every action: login, failed login, logout, upload, view, download, share, permission change, revoke, delete, unauthorized access attempt
+- Each log stores: user, document, action, IP address, user agent, timestamp, status (success/denied)
+- Audit Trail page with filters (user, document, action type, date range, status), search, sorting, pagination
+- Per-document audit page for owners showing who accessed their document
+- Highlight unauthorized/denied attempts in red
+- Export audit log as CSV
+- Logs must be append-only (no edit/delete from the UI)
+
+### 5. Admin Panel
+- Dashboard with stats cards: total users, total documents, total shares, recent unauthorized attempts, plus a small chart (Chart.js) of activity over time
+- Complete user list with: name, email, role, status, last login, document count, actions
+- Revoke access / restore access / delete user buttons (with confirmation modal)
+- Revoking a user immediately invalidates their sessions and removes all their active shares
+- From the audit trail, an admin can click a user and jump straight to revoke their access
+- View all documents and force-remove any share
+
+### 6. Security Hardening
+- CSRF tokens, secure headers (Flask-Talisman or manual CSP, X-Frame-Options, X-Content-Type-Options)
+- Prevent path traversal and IDOR; use non-guessable IDs (UUID) for documents
+- Parameterized queries only (SQLAlchemy ORM)
+- Input validation and output escaping everywhere
+- Secrets and encryption key loaded from environment, never hardcoded
+- Custom error pages (403, 404, 413, 500)
+
+
