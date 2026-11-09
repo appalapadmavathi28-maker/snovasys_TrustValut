@@ -76,7 +76,7 @@ A secure document sharing platform built with Flask that allows users to upload,
 
 ## PROJECT STRUCTURE
 
-
+```text
 securedocs/
 ├── app/
 │   ├── __init__.py          # App factory
@@ -97,6 +97,7 @@ securedocs/
 ├── .env.example
 ├── .gitignore
 └── README.md
+```
 
 
 ## prompt 4
