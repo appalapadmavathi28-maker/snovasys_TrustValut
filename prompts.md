@@ -1,4 +1,4 @@
-## **prompt 1**
+## prompt 1
 
 You are a senior full-stack engineer. Build a complete, production-quality web application called "SecureDocs" (a secure document sharing platform) using Python Flask. Work autonomously: plan first, then create the project structure, write all code, install dependencies, run the app, test it, and fix any errors before finishing.
 
@@ -19,7 +19,7 @@ A secure document sharing platform built with Flask that allows users to upload,
 2. User – uploads documents, shares them, downloads what's shared with them
 
 
-## **prompt 2**
+## prompt 2
 
 ## CORE FEATURES
 
@@ -71,7 +71,7 @@ A secure document sharing platform built with Flask that allows users to upload,
 - Custom error pages (403, 404, 413, 500)
 
 
-## **prompt 3**
+## prompt 3
 
 
 ## PROJECT STRUCTURE
@@ -96,3 +96,14 @@ securedocs/
 ├── .gitignore
 └── README.md
 
+
+## prompt 4
+
+## DATABASE MODELS
+- User: id, name, email (unique), password_hash, role, is_active, failed_attempts, locked_until, last_login, created_at
+- Document: id (UUID), title, description, original_filename, stored_filename, mime_type, size, owner_id, created_at
+- Share: id, document_id, user_id, permission, expires_at, is_revoked, created_at
+- AuditLog: id, user_id, document_id (nullable), action, ip_address, user_agent, status, details, timestamp
+
+## UI PAGES
+Login, Register, Dashboard, Upload, My Documents, Shared With Me, Document Detail (share form + per-document audit), Admin Dashboard, Admin Users, Admin Audit Trail, error pages. Use a consistent professional design (blue/dark theme), flash messages, and confirmation modals.
