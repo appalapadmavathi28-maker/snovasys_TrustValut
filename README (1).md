@@ -73,9 +73,6 @@ This experience helped me understand that AI is a development assistant, but rev
 - **Cloud Storage:** Documents are currently stored as encrypted files on the local server instead of cloud object storage such as AWS S3.
 - **Advanced Key Management:** The application uses a single Fernet encryption key. Enterprise-level key management using AWS KMS or HashiCorp Vault is not implemented.
 - **Large File Handling:** Files are decrypted in memory, which may not be suitable for handling very large documents.
-- **Email Notifications:** Sharing a document does not currently send an email notification to the recipient.
-- **Password Recovery:** Automated email-based password reset functionality is not implemented.
-- **Multi-Factor Authentication:** TOTP-based two-factor authentication is not yet available.
 - **Advanced File Validation:** Binary magic-byte inspection is not implemented; validation currently relies on extensions and MIME information.
 
 These are the main areas I would improve before using SecureDocs in a larger production environment.
